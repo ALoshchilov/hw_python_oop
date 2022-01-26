@@ -118,8 +118,8 @@ class SportsWalking(Training):
         coeff_activity_2: float = 0.029
         mean_speed: float = super().get_mean_speed()
         calories: float = (
-            (coeff_activity_1 * self.weight + (mean_speed**2 // self.height) *
-             coeff_activity_2 * self.weight) * self.duration*60
+            (coeff_activity_1 * self.weight + (mean_speed**2 // self.height)
+             * coeff_activity_2 * self.weight) * self.duration * 60
         )
         return calories
 
@@ -186,4 +186,3 @@ if __name__ == '__main__':
     for workout_type, data in packages:
         training = read_package(workout_type, data)
         main(training)
-
