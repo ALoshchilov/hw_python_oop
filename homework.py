@@ -1,67 +1,66 @@
 """Александр Лощилов, Когорта 10+, бэкенд-факультет Python, Rev 1.0"""
-
-from typing import Union
-
-SWM_STEP: float = 1.38
-LEN_STEP: float = 0.65
-M_IN_KM: int = 1000
+from dataclasses import dataclass
+from typing import Optional
 
 
+@dataclass
 class InfoMessage:
     """Класс InfoMessage предназначен для создания сообщений и их отоброжения
     """
-    def __init__(self,
-                 training_type: str,
-                 duration: float,
-                 distance: float,
-                 speed: float,
-                 calories: float) -> None:
-
-        self.training_type: str = training_type
-        self.duration: float = duration
-        self.distance: float = distance
-        self.speed: float = speed
-        self.calories: float = calories
+    training_type: str
+    duration: float
+    distance: float
+    speed: float
+    calories: float
+    # Вынос шаблона сообщения в константу
+    MSG_TEMPLATE = (
+        'Тип тренировки: {training_type}; '
+        'Длительность: {training_duration:.3f} ч.; '
+        'Дистанция: {training_distance:.3f} км; '
+        'Ср. скорость: {training_mean_speed:.3f} км/ч; '
+        'Потрачено ккал: {training_spent_callories:.3f}.'
+    )
 
     def get_message(self) -> str:
         """Возвращает сообщение, содержащее детали тренировки"""
-        message: str = (f'Тип тренировки: {self.training_type}; '
-                        f'Длительность: {self.duration:.3f} ч.; '
-                        f'Дистанция: {self.distance:.3f} км; '
-                        f'Ср. скорость: {self.speed:.3f} км/ч; '
-                        f'Потрачено ккал: {self.calories:.3f}.'
-                        )
-        return message
+        return self.MSG_TEMPLATE.format(
+            training_type=self.training_type,
+            training_duration=self.duration,
+            training_distance=self.distance,
+            training_mean_speed=self.speed,
+            training_spent_callories=self.calories
+        )
 
 
+@dataclass
 class Training:
     """Базовый класс тренировки."""
-    LEN_STEP: float = LEN_STEP
-    M_IN_KM: int = M_IN_KM
+    action: int
+    duration: float
+    weight: float
+    LEN_STEP = 0.65
+    M_IN_KM = 1000
+    MINUTES_IN_HOUR = 60
 
-    def __init__(self,
-                 action: int,
-                 duration: float,
-                 weight: float) -> None:
-
-        self.action: int = action
-        self.duration: float = duration
-        self.weight: float = weight
+    # Вывод названия типа тренировки. В прошлой версии для этого использовалось
+    # имя класса instance.__class__.__name__
+    def __str__(self):
+        return 'Traning'
 
     def get_distance(self) -> float:
         """Возвращает дистанцию (в километрах), которую преодолел
         пользователь за время тренировки.
         """
-        distance: float = self.action * self.LEN_STEP / self.M_IN_KM
-        return distance
+        # Удаление одноразовой переменной в соответствие с замечанием
+        return self.action * self.LEN_STEP / self.M_IN_KM
 
     def get_mean_speed(self) -> float:
         """Возвращает дистанцию, пройденную во время тренировки, исходя
         из числа совершенных действий (шагов, гребков и т.д.), длины
         шага и количества метров в километре.
         """
-        mean_speed: float = self.get_distance() / self.duration
-        return mean_speed
+        # Удаление одноразовой переменной в соответствие с замечанием
+        return self.get_distance() / self.duration
 
     def get_spent_calories(self) -> float:
         """Получить количество затраченных калорий."""
@@ -69,120 +68,157 @@ class Training:
 
     def show_training_info(self) -> InfoMessage:
         """Вернуть информационное сообщение о выполненной тренировке."""
-        message = InfoMessage(self.__class__.__name__,
-                              self.duration,
-                              self.get_distance(),
-                              self.get_mean_speed(),
-                              self.get_spent_calories()
-                              )
+        message = InfoMessage(
+            self.__str__(),
+            self.duration,
+            self.get_distance(),
+            self.get_mean_speed(),
+            self.get_spent_calories()
+            )
         return message
 
 
+@dataclass
 class Running(Training):
     """Класс Running предназначен для создания записей тренировок типа 'Бег'
     """
-    def __init__(self,
-                 action: int,
-                 duration: float,
-                 weight: float) -> None:
+    # Присвоение осмысленного имени константам и их вынос в тело класса
+    RUNNING_MEAN_SPEED_MULTIPLIER = 18
+    RUNNING_MEAN_SPEED_SUBTRACTED = 20
 
-        super().__init__(action, duration, weight)
+    # Вывод названия типа тренировки. В прошлой версии для этого использовалось
+    # имя класса instance.__class__.__name__
+    def __str__(self) -> str:
+        """Возвращает тип тренировки"""
+        return 'Running'
 
     def get_spent_calories(self):
         """Вернуть число калорий, сожженных при беге"""
-        coeff_calorie_1: int = 18
-        coeff_calorie_2: int = 20
-        mean_speed: float = super().get_mean_speed()
-        calories: float = (
-            (coeff_calorie_1 * mean_speed - coeff_calorie_2)
-            * self.weight / self.M_IN_KM * self.duration * 60
+        # Удаление одноразовой переменной в соответствие с замечанием
+        return (
+            (self.RUNNING_MEAN_SPEED_MULTIPLIER * super().get_mean_speed()
+             - self.RUNNING_MEAN_SPEED_SUBTRACTED) * self.weight / self.M_IN_KM
+            * self.duration * self.MINUTES_IN_HOUR
         )
-        return calories
 
-
+@dataclass
 class SportsWalking(Training):
     """Класс SportsWalking предназначен для создания записей
     тренировок типа 'Спортивная ходьба'"""
-    def __init__(self,
-                 action: int,
-                 duration: float,
-                 weight: float,
-                 height: float) -> None:
+    height: float
+    # Присвоение осмысленного имени константам и их вынос в тело класса
+    WALKING_WEIGHT_MULTIPLIER = 0.035
+    WALKING_MEAN_SPEED_MULTIPLIER = 0.029
 
-        super().__init__(action, duration, weight)
-        self.height = height
+    # Вывод названия типа тренировки. В прошлой версии для этого использовалось
+    # имя класса instance.__class__.__name__
+    def __str__(self) -> str:
+        """Возвращает тип тренировки"""
+        return 'SportsWalking'
 
     def get_spent_calories(self):
         """Вернуть число калорий, сожженных при спортивной ходьбе"""
-        coeff_activity_1: float = 0.035
-        coeff_activity_2: float = 0.029
-        mean_speed: float = super().get_mean_speed()
-        calories: float = (
-            (coeff_activity_1 * self.weight + (mean_speed**2 // self.height)
-             * coeff_activity_2 * self.weight) * self.duration * 60
+        # Удаление одноразовой переменной в соответствие с замечанием
+        return (
+            (self.WALKING_WEIGHT_MULTIPLIER * self.weight +
+             (super().get_mean_speed()**2 // self.height)
+             * self.WALKING_MEAN_SPEED_MULTIPLIER * self.weight)
+            * self.duration * self.MINUTES_IN_HOUR
         )
-        return calories
 
 
+@dataclass
 class Swimming(Training):
-    LEN_STEP = SWM_STEP
+    length_pool: float
+    count_pool: int
+    LEN_STEP = 1.38
+    # Присвоение осмысленного имени константам и их вынос в тело класса
+    SWIMMING_MEAN_SPEED_ADDEND = 1.1
+    SWIMMING_WEIGHT_MULTIPLIER = 2
 
-    def __init__(self,
-                 action: int,
-                 duration: float,
-                 weight: float,
-                 length_pool: float,
-                 count_pool: int) -> None:
-
-        super().__init__(action, duration, weight)
-        self.length_pool = length_pool
-        self.count_pool = count_pool
+    # Вывод названия типа тренировки. В прошлой версии для этого использовалось
+    # имя класса instance.__class__.__name__
+    def __str__(self) -> str:
+        """Возвращает тип тренировки"""
+        return 'Swimming'
 
     def get_mean_speed(self) -> float:
         """Возвращает дистанцию, пройденную во время плавания, исходя
         из длины бассейна и количества его проходов
         """
-        mean_speed: float = (
-            self.length_pool * self.count_pool / self.M_IN_KM / self.duration
-        )
-        return mean_speed
+        # Удаление одноразовой переменной в соответствие с замечанием
+        return (self.length_pool * self.count_pool / self.M_IN_KM
+                / self.duration)
 
     def get_spent_calories(self):
         """Вернуть число калорий, сожженных при плавании"""
-        coeff_activity_1: float = 1.1
-        coeff_activity_2: int = 2
-        mean_speed: float = self.get_mean_speed()
-        calories: float = (
-            (mean_speed + coeff_activity_1) * coeff_activity_2 * self.weight
+        # Удаление одноразовой переменной в соответствие с замечанием
+        return (
+            (self.get_mean_speed() + self.SWIMMING_MEAN_SPEED_ADDEND)
+            * self.SWIMMING_WEIGHT_MULTIPLIER * self.weight
         )
-        return calories
 
 
-def read_package(workout_type: str, data: list) -> Training:
+# Вынос в константу на уровне модуля в соответствии с замечанием
+TRAINING_CODES = {
+    'SWM': Swimming,
+    'RUN': Running,
+    'WLK': SportsWalking
+}
+# Словарь с числом параметров каждого класса
+PARAMETER_NUMBERS = {
+    'SWM': len(Swimming.__dataclass_fields__),
+    'RUN': len(Running.__dataclass_fields__),
+    'WLK': len(SportsWalking.__dataclass_fields__)
+}
+# Шаблон ошибки для неверного числа аргументов
+ERR_DATA_PACKAGE_TEMPLATE = (
+    'Wrong package data. Incorrect number of parameters for {class_name}. '
+    'Given: {given_args_number}, expected: {expected_args_number}.'
+)
+# Шаблон ошибки для неверного кода тренировки
+ERR_TRAINING_TYPE_TEMPLATE = 'Error. Incorrect training code: {training_code}'
+
+
+def read_package(workout_type: str, data) -> Optional[Training]:
     """Прочитать данные полученные от датчиков."""
-    training_codes: dict = {
-        'SWM': Swimming,
-        'RUN': Running,
-        'WLK': SportsWalking
-    }
-    workout_record = training_codes[workout_type](*data)
-    return workout_record
+    # Проверка числа аргументов и вывод ошибки
+    if PARAMETER_NUMBERS[workout_type] != len(data):
+        print(
+            ERR_DATA_PACKAGE_TEMPLATE.format(
+                class_name=TRAINING_CODES[workout_type].__name__,
+                given_args_number=len(data),
+                expected_args_number=PARAMETER_NUMBERS[workout_type]
+            )
+        )
+        return
+
+    # Удаление одноразовой переменной в соответствие с замечанием
+    return TRAINING_CODES[workout_type](*data)
 
 
-def main(training: Training) -> None:
+def main(training: Optional[Training]) -> None:
     """Главная функция."""
-    info = training.show_training_info()
-    print(info.get_message())
+    if training is None:
+        print('Empty class. Possible reason: wrong data package')
+        return
+    print(training.show_training_info().get_message())
 
 
 if __name__ == '__main__':
-    packages_datatype = list[tuple[str, list[Union[int, float]]]]
-    packages: packages_datatype = [
+    # Удалена аннотация, имя соответствует константе
+    PACKAGES = [
         ('SWM', [720, 1, 80, 25, 40]),
         ('RUN', [15000, 1, 75]),
         ('WLK', [9000, 1, 75, 180]),
     ]
 
-    for workout_type, data in packages:
-        training = read_package(workout_type, data)
-        main(training)
+    for workout_type, data in PACKAGES:
+        # Проверка корректности кода тренировки
+        if workout_type not in TRAINING_CODES:
+            print(ERR_TRAINING_TYPE_TEMPLATE.format(
+                training_code=workout_type
+                )
+            )
+            continue
+        main(read_package(workout_type, data))
