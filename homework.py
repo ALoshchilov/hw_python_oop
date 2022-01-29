@@ -60,7 +60,7 @@ class Training:
             self.get_distance(),
             self.get_mean_speed(),
             self.get_spent_calories()
-            )
+        )
 
 
 @dataclass
@@ -90,8 +90,8 @@ class SportsWalking(Training):
     def get_spent_calories(self):
         """Вернуть число калорий, сожженных при спортивной ходьбе."""
         return (
-            (self.WEIGHT_MULTIPLIER * self.weight +
-             (super().get_mean_speed()**2 // self.height)
+            (self.WEIGHT_MULTIPLIER * self.weight
+             + (self.get_mean_speed()**2 // self.height)
              * self.MEAN_SPEED_MULTIPLIER * self.weight)
             * self.duration * self.MINUTES_IN_HOUR
         )
@@ -141,7 +141,10 @@ ERR_TRAINING_TYPE_TEMPLATE = 'Error. Incorrect training code: {training_code}.'
 
 
 def is_correct_package(workout_type: str, data):
-    """Проверятся соответствие числа параметров в пакете, тип тренировки и
+    """Проверяет наличие типа тренировки в допустимых кодах
+    и соответствие переданного числа аргументов числу аргументов,
+    требуемых для создания экземпляра класса.
+    Проверятся соответствие числа параметров в пакете, тип тренировки и
     тип данных параметров.
     В случае несоответствия создает исключения, не прерывающие
     обработку дальнейших пакетов"""
@@ -152,8 +155,7 @@ def is_correct_package(workout_type: str, data):
     except ValueError:
         exception(ERR_TRAINING_TYPE_TEMPLATE.format(
             training_code=workout_type
-            )
-        )
+        ))
         return False
 
     # Страховка неверного числа параметров
@@ -162,11 +164,10 @@ def is_correct_package(workout_type: str, data):
             raise ValueError
     except ValueError:
         exception(ERR_LEN_DATA_PACKAGE_TEMPLATE.format(
-                    class_name=TRAINING_CODES[workout_type][0].__name__,
-                    given_args_number=len(data),
-                    expected_args_number=TRAINING_CODES[workout_type][1]
-            )
-        )
+            class_name=TRAINING_CODES[workout_type][0].__name__,
+            given_args_number=len(data),
+            expected_args_number=TRAINING_CODES[workout_type][1]
+        ))
         return False
 
     # Страховка неверного типа данных в data
