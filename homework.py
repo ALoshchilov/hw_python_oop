@@ -1,4 +1,5 @@
 """Александр Лощилов, Когорта 10+, бэкенд-факультет Python, Rev 2.0"""
+
 from dataclasses import dataclass
 from typing import Optional
 
@@ -219,7 +220,7 @@ if __name__ == '__main__':
         if workout_type not in TRAINING_CODES:
             print(
                 ERR_TRAINING_TYPE_TEMPLATE.format(
-                training_code=workout_type
+                    training_code=workout_type
                 )
             )
             continue
