@@ -1,4 +1,4 @@
-"""Александр Лощилов, Когорта 10+, бэкенд-факультет Python, Rev 1.0"""
+"""Александр Лощилов, Когорта 10+, бэкенд-факультет Python, Rev 2.0"""
 from dataclasses import dataclass
 from typing import Optional
 
@@ -74,7 +74,7 @@ class Training:
             self.get_distance(),
             self.get_mean_speed(),
             self.get_spent_calories()
-            )
+        )
         return message
 
 
@@ -101,6 +101,7 @@ class Running(Training):
             * self.duration * self.MINUTES_IN_HOUR
         )
 
+
 @dataclass
 class SportsWalking(Training):
     """Класс SportsWalking предназначен для создания записей
@@ -120,8 +121,8 @@ class SportsWalking(Training):
         """Вернуть число калорий, сожженных при спортивной ходьбе"""
         # Удаление одноразовой переменной в соответствие с замечанием
         return (
-            (self.WALKING_WEIGHT_MULTIPLIER * self.weight +
-             (super().get_mean_speed()**2 // self.height)
+            (self.WALKING_WEIGHT_MULTIPLIER * self.weight
+             + (super().get_mean_speed()**2 // self.height)
              * self.WALKING_MEAN_SPEED_MULTIPLIER * self.weight)
             * self.duration * self.MINUTES_IN_HOUR
         )
@@ -216,7 +217,8 @@ if __name__ == '__main__':
     for workout_type, data in PACKAGES:
         # Проверка корректности кода тренировки
         if workout_type not in TRAINING_CODES:
-            print(ERR_TRAINING_TYPE_TEMPLATE.format(
+            print(
+                ERR_TRAINING_TYPE_TEMPLATE.format(
                 training_code=workout_type
                 )
             )
