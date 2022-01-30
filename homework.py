@@ -1,6 +1,5 @@
-"""Александр Лощилов, Когорта 10+, бэкенд-факультет Python, Rev 3.0"""
+"""Александр Лощилов, Когорта 10+, бэкенд-факультет Python, Rev 4.0"""
 from dataclasses import dataclass, fields, asdict
-from logging import exception
 
 
 @dataclass
@@ -131,59 +130,37 @@ ERR_LEN_DATA_PACKAGE_TEMPLATE = (
     'Wrong package data. Incorrect number of parameters for {class_name}. '
     'Given: {given_args_number}, expected: {expected_args_number}.'
 )
-# Шаблон ошибки для неверного типа данных в последовательности
-ERR_TYPE_DATA_PACKAGE_TEMPLATE = (
-    'Wrong data type detected: {data}. '
-    'Data should be a list of ints or floats.'
-)
 # Шаблон ошибки для неверного кода тренировки
 ERR_TRAINING_TYPE_TEMPLATE = 'Error. Incorrect training code: {training_code}.'
 
 
-def is_correct_package(workout_type: str, data):
-    """Проверяет наличие типа тренировки в допустимых кодах
-    и соответствие переданного числа аргументов числу аргументов,
-    требуемых для создания экземпляра класса.
-    Проверятся соответствие числа параметров в пакете, тип тренировки и
+def is_correct_package(workout_type: str, data) -> bool:
+    """Проверятся соответствие числа параметров в пакете, тип тренировки и
     тип данных параметров.
-    В случае несоответствия создает исключения, не прерывающие
-    обработку дальнейших пакетов"""
+    В случае несоответствия создает исключения"""
     # Страховка неожиданного типа тренировки
-    try:
-        if workout_type not in TRAINING_CODES:
-            raise ValueError
-    except ValueError:
-        exception(ERR_TRAINING_TYPE_TEMPLATE.format(
+    if workout_type not in TRAINING_CODES:
+        raise ValueError(ERR_TRAINING_TYPE_TEMPLATE.format(
             training_code=workout_type
         ))
-        return False
 
     # Страховка неверного числа параметров
-    try:
-        if TRAINING_CODES[workout_type][1] != len(data):
-            raise ValueError
-    except ValueError:
-        exception(ERR_LEN_DATA_PACKAGE_TEMPLATE.format(
-            class_name=TRAINING_CODES[workout_type][0].__name__,
+    workout_class, args_number = TRAINING_CODES[workout_type]
+    if args_number != len(data):
+        raise ValueError(ERR_LEN_DATA_PACKAGE_TEMPLATE.format(
+            class_name=workout_class.__name__,
             given_args_number=len(data),
-            expected_args_number=TRAINING_CODES[workout_type][1]
+            expected_args_number=args_number
         ))
-        return False
-
-    # Страховка неверного типа данных в data
-    try:
-        if not all(isinstance(i, (int, float)) for i in data):
-            raise ValueError
-    except ValueError:
-        exception(ERR_TYPE_DATA_PACKAGE_TEMPLATE.format(data=data))
-        return False
 
     return True
 
 
 def read_package(workout_type: str, data) -> Training:
     """Прочитать данные полученные от датчиков."""
-    return TRAINING_CODES[workout_type][0](*data)
+    # Проверка корректности пакета
+    if is_correct_package(workout_type, data):
+        return TRAINING_CODES[workout_type][0](*data)
 
 
 def main(training: Training) -> None:
@@ -199,6 +176,4 @@ if __name__ == '__main__':
     ]
 
     for workout_type, data in PACKAGES:
-        # Проверка корректности пакета
-        if is_correct_package(workout_type, data):
-            main(read_package(workout_type, data))
+        main(read_package(workout_type, data))
